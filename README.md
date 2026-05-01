@@ -73,21 +73,18 @@ docker run -p 5000:5000 credit-default-service
 docker-compose up
 ```
 
-## Загрузка образа на Docker Hub
+## Docker Hub
+
+Образ опубликован: https://hub.docker.com/r/wteo2/credit-default-service
+
+Скачать и запустить:
 
 ```bash
-# авторизация
-docker login
-
-# поставить тег с именем репозитория
-docker tag credit-default-service YOUR_DOCKERHUB_USERNAME/credit-default-service:latest
-
-# загрузить
-docker push YOUR_DOCKERHUB_USERNAME/credit-default-service:latest
+docker pull wteo2/credit-default-service:latest
+docker run -p 5000:5000 wteo2/credit-default-service:latest
 ```
 
-После загрузки образ будет доступен по адресу:
-`docker pull YOUR_DOCKERHUB_USERNAME/credit-default-service:latest`
+Доступные теги: `latest`, `v1.0`.
 
 ## API
 
@@ -179,3 +176,73 @@ python ab_test/ab_analysis.py
 ```
 
 Скрипт сравнивает модели с помощью z-теста для пропорций и строит 95% доверительный интервал разности recall.
+
+## Демонстрация работы
+
+Сервис запускался в Docker-контейнере, проверка через `curl` из другого окна PowerShell.
+
+### 1. Запуск контейнера и логи API
+
+```
+[2026-05-01 09:09:16 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2026-05-01 09:09:16 +0000] [1] [INFO] Listening at: http://0.0.0.0:5000 (1)
+[2026-05-01 09:09:16 +0000] [1] [INFO] Using worker: sync
+[2026-05-01 09:09:16 +0000] [7] [INFO] Booting worker with pid: 7
+{"time": "2026-05-01 09:10:32,596", "level": "INFO", "message": "{"version": "v1", "prediction": 1, "probability": 0.7755}"}
+{"time": "2026-05-01 09:10:41,008", "level": "INFO", "message": "{"version": "v2", "prediction": 1, "probability": 0.81}"}
+{"time": "2026-05-01 09:10:50,260", "level": "INFO", "message": "{"version": "v1", "prediction": 1, "probability": 0.7755}"}
+{"time": "2026-05-01 09:10:51,927", "level": "INFO", "message": "{"version": "v2", "prediction": 1, "probability": 0.81}"}
+{"time": "2026-05-01 09:10:53,106", "level": "INFO", "message": "{"version": "v2", "prediction": 1, "probability": 0.81}"}
+```
+
+![Логи контейнера](DEMO/Скриншот_1.png)
+
+### 2. Примеры curl-запросов
+
+Для удобства в PowerShell JSON-тело запроса сохранено в файл `client.json`.
+
+**Проверка здоровья сервиса:**
+```powershell
+curl.exe http://localhost:5000/health
+```
+Ответ:
+```json
+{"status":"ok"}
+```
+
+**Предсказание моделью v1 (LogisticRegression):**
+```powershell
+curl.exe -X POST "http://localhost:5000/predict?version=v1" -H "Content-Type: application/json" -d "@client.json"
+```
+Ответ:
+```json
+{"model_version":"v1","prediction":1,"probability":0.7755}
+```
+
+**Предсказание моделью v2 (RandomForest):**
+```powershell
+curl.exe -X POST "http://localhost:5000/predict?version=v2" -H "Content-Type: application/json" -d "@client.json"
+```
+Ответ:
+```json
+{"model_version":"v2","prediction":1,"probability":0.81}
+```
+
+**A/B режим (без параметра version — случайное распределение 50/50):**
+```powershell
+curl.exe -X POST "http://localhost:5000/predict" -H "Content-Type: application/json" -d "@client.json"
+```
+Три запроса подряд — видно, как случайно выбирается версия:
+```json
+{"model_version":"v1","prediction":1,"probability":0.7755}
+{"model_version":"v2","prediction":1,"probability":0.81}
+{"model_version":"v2","prediction":1,"probability":0.81}
+```
+
+![Запросы curl и ответы](DEMO/Скриншот_2.png)
+
+### 3. Образ на Docker Hub
+
+![Страница образа на Docker Hub](DEMO/Скриншот_3.png)
+
+Ссылка: https://hub.docker.com/r/wteo2/credit-default-service
