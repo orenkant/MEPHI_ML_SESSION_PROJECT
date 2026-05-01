@@ -1,0 +1,35 @@
+# python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# виртуальные окружения
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# тесты
+.pytest_cache/
+.coverage
+htmlcov/
+
+# jupyter
+.ipynb_checkpoints/
+
+# ОС
+.DS_Store
+Thumbs.db
+
+# обученные модели — слишком большие для git, создаются через python src/train.py
+models/*.pkl
+
+# сгенерированная при обучении тестовая выборка
+data/test_data.csv
