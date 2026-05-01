@@ -31,6 +31,13 @@ credit-default-service/
 
 ## Запуск локально
 
+Файл `models/model_v2.pkl` хранится через Git LFS — перед клонированием установите LFS:
+
+```bash
+git lfs install
+git clone <repo-url>
+```
+
 ```bash
 # создать виртуальное окружение
 python -m venv venv
@@ -50,15 +57,6 @@ python app/api.py
 Сервис запустится на `http://localhost:5000`.
 
 ## Запуск через Docker
-
-Перед сборкой нужно обучить модели (они не хранятся в git из-за размера):
-
-```bash
-pip install -r requirements.txt
-python src/train.py
-```
-
-Затем:
 
 ```bash
 # собрать образ
